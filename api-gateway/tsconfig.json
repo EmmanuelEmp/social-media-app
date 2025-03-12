@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./build",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./node_modules/*", "*"],
+      "@types/node": ["node_modules/@types/node"],
+      "@types/*": ["types/*"]
+    },
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "jsx": "react",
+    "lib": ["es6", "dom"],
+    "typeRoots": ["./node_modules/@types", "src/types"],
+    "types": ["node", "express"],
+  },
+  "include": [
+   "src", 
+    "src/types/express.d.ts",  // Make sure this path is included
+    "node_modules/@types"
+  ],
+  "exclude": ["node_modules"]
+}
