@@ -9,6 +9,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import postRoutes  from "./routes/postRoutes";
 import { rateLimit } from "express-rate-limit";
 import { RedisReply, RedisStore } from "rate-limit-redis"
+import { connectRabbitMQ } from "./utils/rabbitmq";
 // import "./types/express"; // Import the custom types
 
 dotenv.config();
@@ -50,6 +51,8 @@ app.use((req, res, next) => {
 // }); 
 
 //routes -> pass redisclient to routes
+
+
 app.use('/api/posts', (req, res, next) => {
     req.redisClient = redisClient;
     next();
@@ -58,13 +61,24 @@ app.use('/api/posts', (req, res, next) => {
 
 app.use(errorHandler);
 
+async function startServer(){
+    try {
+        await connectRabbitMQ();
+        app.listen(PORT, () => {
+            logger.info(`Post service running on port ${PORT}`);
+        });
+    } catch (error) {
+        logger.error("Error starting server", error);
+        process.exit(1);
+    }
+} 
 
-app.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`);
-});
+startServer()
+
 
 //unhandled promise rejection
 process.on("unhandledRejection", (reason, promise) => {
     logger.error("Unhandled promise rejection", promise, 'reason', reason);
     process.exit(1);
 });
+

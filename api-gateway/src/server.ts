@@ -87,12 +87,52 @@ app.use('/v1/posts', validateToken, proxy( process.env.POST_SERVICE_URL as strin
 })
 )
 
+// setting up proxy for search services
+app.use('/v1/search', validateToken, proxy( process.env.SEARCH_SERVICE_URL as string, {
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+       proxyReqOpts.headers = proxyReqOpts.headers || {};
+       proxyReqOpts.headers["Content-Type"] = "application/json";
+       if (srcReq.user) {
+           proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+       }
+       return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info(`Response from search service: ${proxyRes.statusCode}`);
+        return proxyResData;
+    }
+})
+)
+
+// setting up proxy for media services
+app.use('/v1/media', validateToken, proxy(process.env.MEDIA_SERVICE_URL as string, {
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers = proxyReqOpts.headers || {};
+        if (srcReq.user) {
+            proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+        }
+        if(!srcReq.headers['content-type']?.startsWith('multipart/form-data')){
+            proxyReqOpts.headers["Content-Type"] = "application/json";
+        }
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info(`Response from media service: ${proxyRes.statusCode}`);
+        return proxyResData;
+    },
+    parseReqBody: false
+}))
+
 app.use(errorHandler);
 
 app.listen(PORT, () => {
     logger.info(`API Gateway is running on port ${PORT}`);
     logger.info(`User service is running on ${process.env.USER_SERVICE_URL}`);
     logger.info(`Post service is running on ${process.env.POST_SERVICE_URL}`);
+    logger.info(`Media service is running on ${process.env.MEDIA_SERVICE_URL}`);
+    logger.info(`Search service is running on ${process.env.SEARCH_SERVICE_URL}`);
     logger.info(`Redis request is running on ${process.env.REDIS_URL}`);
 
 }

@@ -3,14 +3,24 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 const validateToken = async (req: Request, res: Response, next: NextFunction): Promise<void>  => {
+    let token: string | undefined;
+
+    // 1. Check Authorization header
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+    }
+
+    // 2. If no token in header, check cookies
+    if (!token && req.cookies?.token) {
+        token = req.cookies.token;
+    }
 
     if (!token) {
         logger.warn('Unauthorized: No token provided');
-        res.status(401).send({
+        res.status(401).json({
             success: false,
-            message: 'Unauthorized'
+            message: 'Unauthorized: No token found'
         });
         return;
     }
@@ -20,12 +30,8 @@ const validateToken = async (req: Request, res: Response, next: NextFunction): P
         req.user = { userId: decoded.id }; // Map id to userId
         next();
     } catch (error) {
-        if (error instanceof Error) {
-            logger.error(`Unauthorized: ${error.message}`);
-        } else {
-            logger.error('Unauthorized: An unknown error occurred');
-        }
-        res.status(401).send({ success: false, message: 'Invalid token' });
+        logger.error(`Unauthorized: Invalid token - ${error}`);
+        res.status(401).json({ success: false, message: 'Invalid token' });
         return;
     }
 };
