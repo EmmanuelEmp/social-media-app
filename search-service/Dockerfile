@@ -1,25 +1,19 @@
-# This is the Dockerfile for the API Gateway service
-# use the official Node.js 18 image
-
+# Use an official Node.js runtime as a parent image
 FROM node:18-alpine
 
-
-# Set the working directory in the container
-
+# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy the dependencies file to the working directory
+# Copy package.json and install dependencies
 COPY package*.json ./
+RUN npm install
 
-# Install the dependencies
-RUN  npm ci --only=production
-
-# Copy the content of the local src directory to the working directory
+# Copy the rest of the application
 COPY . .
 
-# expose the port on which the server will run
-EXPOSE 3004
+# Build the TypeScript files
+RUN npm run build  
+# Ensure TypeScript compiles inside the container
 
-# Command to run the application
-
-CMD ["node", "src/server.ts"]
+# Set the command to run the compiled JavaScript file
+CMD ["node", "build/server.js"]

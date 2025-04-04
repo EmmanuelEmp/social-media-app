@@ -1,12 +1,12 @@
 {
   "name": "search-service",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
-    "start": "nodemon --files server.ts",
-    "dev": "nodemon src/server.ts"
+    "start": "node build/server.js",
+    "dev": "nodemon --files src/server.ts"
   },
   "keywords": [],
   "author": "",
